@@ -1,0 +1,65 @@
+grammar edu:umn:cs:melt:exts:ableC:channels:abstractsyntax;
+
+imports edu:umn:cs:melt:ableC:abstractsyntax:host;
+imports edu:umn:cs:melt:ableC:abstractsyntax:construction;
+imports edu:umn:cs:melt:ableC:abstractsyntax:construction:parsing;
+imports edu:umn:cs:melt:ableC:abstractsyntax:substitution;
+imports edu:umn:cs:melt:ableC:abstractsyntax:env;
+imports edu:umn:cs:melt:exts:ableC:templating:abstractsyntax as tmp;
+
+imports silver:langutil;
+
+-- call the appropriately typed chan_close function 
+abstract production close
+top::Expr ::= ch::Expr
+{ 
+  propagate substituted;
+  top.pp = pp"close(${ch.pp})";
+
+  local channelType::Type = channelSubType(ch.typerep, ch.env);
+
+  -- next, fill this with an error from the above channelSubType
+  -- and so on for remaining productions that call channelSubType
+  local localErrors::[Message] = [];
+
+  local fwrd::Expr = 
+      callExpr(
+          tmp:templateDeclRefExpr(name("chan_close",location=top.location), 
+              consTypeName(typeName(directTypeExpr(channelType), baseTypeExpr()),
+                   nilTypeName()),location=top.location),
+          consExpr(ch, nilExpr()), location=top.location);
+
+  forwards to mkErrorCheck(localErrors, fwrd);
+}
+
+-- call the appropriately typed chan_send function
+abstract production send
+top::Expr ::= ch::Expr v::Expr
+{
+  propagate substituted;
+  top.pp = pp"send(${ch.pp})";
+
+  forwards to 
+      callExpr(
+          tmp:templateDeclRefExpr(name("chan_send",location=top.location), 
+              consTypeName(typeName(directTypeExpr(v.typerep), baseTypeExpr()),
+                   nilTypeName()),location=top.location),
+          consExpr(ch, consExpr(v, nilExpr())), location=top.location);
+}
+
+-- call the appropriately typed chan_receive function
+abstract production receive
+top::Expr ::= ch::Expr
+{
+  propagate substituted;
+  top.pp = pp"receive(${ch.pp})";
+
+  local channelType::Type = channelSubType(ch.typerep, ch.env);
+
+  forwards to 
+      callExpr(
+          tmp:templateDeclRefExpr(name("chan_recv",location=top.location), 
+              consTypeName(typeName(directTypeExpr(channelType), baseTypeExpr()),
+                   nilTypeName()),location=top.location),
+          consExpr(ch, nilExpr()), location=top.location);
+}
