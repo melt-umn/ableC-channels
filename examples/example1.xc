@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
     inst Channel<int> *ch = inst chan_open<int>();
-    <-ch;
+//    <-ch;
 
     return 0; 
 }
