@@ -6,7 +6,7 @@ imports silver:langutil only ast;
 
 imports edu:umn:cs:melt:exts:ableC:channels:abstractsyntax;
 
-marking terminal Arrow_t '<-' lexer classes{Cassignment}, association = left;
+marking terminal Arrow_t '<-' lexer classes{Cassignment};
 
 -------
 -- Receive Statement
@@ -15,7 +15,7 @@ marking terminal Arrow_t '<-' lexer classes{Cassignment}, association = left;
 -------
 
 concrete production receiveFrom_c
-s::AssignExpr_c ::= Arrow_t ch::UnaryExpr_c
+s::AssignExpr_c ::= Arrow_t ch::AssignExpr_c
 {
   s.ast = receive(ch.ast, location=s.location);
 }
@@ -25,7 +25,7 @@ s::AssignExpr_c ::= Arrow_t ch::UnaryExpr_c
 -- "ch <- val;"
 --------
 
-concrete productions top::AddMulNoneOp_c
+concrete productions top::AssignOp_c
 | Arrow_t
 {
     top.ast = send(top.leftExpr, top.rightExpr, location=top.location);
