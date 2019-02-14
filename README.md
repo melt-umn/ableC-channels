@@ -1,3 +1,1 @@
-This extension copies channels from the Go Concurrency extension without the
-spawn construct.
-
+An ableC extension that introduces channels in the model of Go
